@@ -29,6 +29,10 @@ using std::experimental::string_view;
 #define FIXING_CONSTEXPR_FUNCTION constexpr
 #define FIXING_CONSTEXPR constexpr
 
+// TODO: detect if have nodiscard
+#define FIXING_NODISCARD
+// #define FIXING_NODISCARD [[nodiscard]]
+
 #if defined(USE_IACA)
     #include "iacaMarks.h"
     #define FIXING_IACA_START IACA_START
@@ -67,11 +71,10 @@ public:
         FIXING_IACA_START
 
         // TODO: can I use the fact that expecting at least "10=XXX" at the end
-        const char* cur = begin;
-        const char* value;
-        int tag;
-        cur = read_tag(cur, tag);
-        value = cur;
+        ReadTagResult r = read_tag(begin);
+        int tag = r.tag;
+        const char* cur = begin + r.mov;
+        const char* value = cur;
         assert(*(cur - 1) == '=' && "didn't read tag correctly");
         while (cur < end) {
             const char c = *cur++;
@@ -81,7 +84,9 @@ public:
                     _values[idx].v[0] = static_cast<uint16_t>(value - begin);
                     _values[idx].v[1] = static_cast<uint16_t>(cur - begin -1);
                 }
-                cur = read_tag(cur, tag);
+                r = read_tag(cur);
+                tag = r.tag;
+                cur += r.mov;
                 if (FIXING_UNLIKELY(tag == FIXING_CHECKSUM_TAG)) {
                     break;
                 }
@@ -95,8 +100,8 @@ public:
     }
 
     template <class Tag>
-    FIXING_HOT_FUNCTION
-    string_view get() const noexcept {
+    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION FIXING_NODISCARD
+    string_view get() const FIXING_RESTRICT noexcept {
         using Begin = typename boost::mpl::begin<Tags>::type;
         using Found = typename boost::mpl::find<Tags, Tag>::type;
         using Index = typename boost::mpl::distance<Begin, Found>::type;
@@ -107,8 +112,10 @@ public:
 
 private:
 
-    FIXING_HOT_FUNCTION
-    static const char* read_tag(const char* c, int& result) noexcept {
+    struct ReadTagResult { int tag; int mov; };
+
+    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
+    static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
         const int r1 = (c[0] - '0')*1;
         const int r2 = (c[0] - '0')*10 + (c[1] - '0')*1;
         const int r3 = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
@@ -119,43 +126,15 @@ private:
         const int e3 = c[3] == '=';
         const int e4 = c[4] == '=';
 
-#if 0
-        const int c1 = (c[1] == '=') ? 1 : 0;
-        const int c2 = !c1 && (c[2] == '=') ? 1 : 0;
-        const int c3 = !c1 && !c2 && (c[3] == '=') ? 1 : 0;
-        const int c4 = !c1 && !c2 && !c3 && (c[4] == '=') ? 1 : 0;
-#endif
-
-#if 0
-        const int c1 = (c[1] == '=') ? 1 : 0;
-        const int c2 = !c1 & (c[2] == '=') ? 1 : 0;
-        const int c3 = !c1 & !c2 & (c[3] == '=') ? 1 : 0;
-        const int c4 = !c1 & !c2 & !c3 & (c[4] == '=') ? 1 : 0;
-#endif
-
-#if 0
-        const int c1 =  e1;
-        const int c2 = !e1 &  e2;
-        const int c3 = !e1 & !e2 & e3;
-        const int c4 = !e1 & !e2 & !e3 & e4;
-#endif
-
-#if 0
-        const int c1 =  e1 ? 1 : 0;
-        const int c2 = !e1 &&  e2 ? 1 : 0;
-        const int c3 = !e1 && !e2 && e3 ? 1 : 0;
-        const int c4 = !e1 && !e2 && !e3 & e4 ? 1 : 0;
-#endif
-
         const bool c1 =  e1;
         const bool c2 = !e1 &&  e2;
         const bool c3 = !e1 && !e2 && e3;
         const bool c4 = !e1 && !e2 && !e3 & e4;
 
         assert(c1 || c2 || c3 || c4 && "couldn't find '='");
-        result = c1*r1 | c2*r2 | c3*r3 | c4*r4;
-        c     += c1*2  | c2*3  | c3*4  | c4*5;
-        return c;
+        int tag = c1*r1 | c2*r2 | c3*r3 | c4*r4;
+        int mov = c1*2  | c2*3  | c3*4  | c4*5 ;
+        return { tag, mov };
     }
 
 private:
