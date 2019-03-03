@@ -98,12 +98,12 @@ public:
 #if 1
         const char* cur = begin;
         while (cur < end) {
-            assert(cur == begin || *(cur - 1) == '\001' &&
+            assert(cur == begin || *(cur - 1) == FIXING_FIX_SEPARATOR &&
                     "parser expects to start 1 character passed FIX separator");
             const auto r = read_tag(cur);
             cur += r.adv;
             const char* const value = cur;
-            while (*cur++ != '\001') {}
+            while (*cur++ != FIXING_FIX_SEPARATOR) {}
             int idx = tag2idx<Tags>(r.tag);
             if (idx >= 0) {
                 _values[idx].v[0] = static_cast<uint16_t>(value - begin);
