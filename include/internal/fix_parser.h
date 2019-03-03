@@ -72,28 +72,45 @@ public:
 
         // TODO: can I use the fact that expecting at least "10=XXX" at the end
         ReadTagResult r = read_tag(begin);
-        int tag = r.tag;
         const char* cur = begin + r.adv;
         const char* value = cur;
         assert(*(cur - 1) == '=' && "didn't read tag correctly");
         while (cur < end) {
             const char c = *cur++;
             if (FIXING_UNLIKELY(c == '\001')) {
-                const int idx = tag2idx<Tags>(tag);
+                const int idx = tag2idx<Tags>(r.tag);
                 if (idx >= 0) {
                     _values[idx].v[0] = static_cast<uint16_t>(value - begin);
-                    _values[idx].v[1] = static_cast<uint16_t>(cur - begin -1);
+                    _values[idx].v[1] = static_cast<uint16_t>(cur - value -1);
                 }
                 r = read_tag(cur);
-                tag = r.tag;
                 cur += r.adv;
-                if (FIXING_UNLIKELY(tag == FIXING_CHECKSUM_TAG)) {
+                if (FIXING_UNLIKELY(r.tag == FIXING_CHECKSUM_TAG)) {
                     break;
                 }
                 assert(*(cur - 1) == '=' && "didn't read tag correctly");
                 value = cur;
             }
         }
+
+#if 0
+        const char* cur = begin;
+        while (cur < end) {
+            assert(*(cur - 1) == '\001' && "parser expects to start 1 character passed FIX separator");
+            auto r = read_tag(cur);
+            cur += r.adv;
+            const char* const value = cur;
+            while (*cur != '\001') {
+                ++cur;
+            }
+            if (int idx = tag2idx<Tags>(tag)) {
+                _values[idx].v[0] = static_cast<uint16_t>(value - begin);
+                _values[idx].v[1] = static_cast<uint16_t>(cur - begin - 1);
+            }
+        }
+#endif
+
+
         _buffer = begin;
 
         FIXING_IACA_END
@@ -113,7 +130,7 @@ public:
 
         FIXING_CONSTEXPR int idx = Index::value;
         const Value& v = _values[idx];
-        return { _buffer + v.v[0], static_cast<size_t>(v.v[1] - v.v[0]) };
+        return { _buffer + v.v[0], static_cast<size_t>(v.v[1]) };
     }
 
 private:
