@@ -5,81 +5,55 @@
 #include <algorithm>
 #include "fixing.h"
 
-namespace v2 {
-
-template <int N>
-struct FixTag : boost::mpl::int_<N> {};
-
-namespace FIX {
-
-using Begin            = FixTag<8>;
-using MsgType          = FixTag<35>;
-using OrderID          = FixTag<37>;
-using OrdStatus        = FixTag<39>;
-using Price            = FixTag<44>;
-using SenderCompID     = FixTag<49>;
-using Symbol           = FixTag<55>;
-using TargetCompID     = FixTag<56>;
-using TargetSubID      = FixTag<57>;
-using TransactTime     = FixTag<60>;
-using MissingTag       = FixTag<75>;
-using ExecType         = FixTag<150>;
-using SecurityExchange = FixTag<207>;
-using CustomTag        = FixTag<7999>;
-
-} /*FIX*/
-
-} /*v2*/
-
 using Tags = MakeTags<
-    v2::FIX::MsgType,
-    v2::FIX::OrderID,
-    v2::FIX::Begin,
-    v2::FIX::OrderID,
-    v2::FIX::OrdStatus,
-    v2::FIX::MsgType,
-    v2::FIX::CustomTag,
-    v2::FIX::ExecType,
-    v2::FIX::TransactTime,
-    v2::FIX::Symbol,
-    v2::FIX::SenderCompID,
-    v2::FIX::SecurityExchange,
-    v2::FIX::TargetCompID,
-    v2::FIX::TargetSubID
+    FIX::MsgType,
+    FIX::OrderID,
+    FIX::Begin,
+    FIX::OrderID,
+    FIX::OrdStatus,
+    FIX::MsgType,
+    FIX::CustomTag,
+    FIX::ExecType,
+    FIX::TransactTime,
+    FIX::Symbol,
+    FIX::SenderCompID,
+    FIX::SecurityExchange,
+    FIX::TargetCompID,
+    FIX::TargetSubID
     >;
 
 using ExpectedTags = boost::mpl::vector<
-    v2::FIX::Begin,
-    v2::FIX::MsgType,
-    v2::FIX::OrderID,
-    v2::FIX::OrdStatus,
-    v2::FIX::SenderCompID,
-    v2::FIX::Symbol,
-    v2::FIX::TargetCompID,
-    v2::FIX::TargetSubID,
-    v2::FIX::TransactTime,
-    v2::FIX::ExecType,
-    v2::FIX::SecurityExchange,
-    v2::FIX::CustomTag
+    FIX::Begin,
+    FIX::MsgType,
+    FIX::OrderID,
+    FIX::OrdStatus,
+    FIX::SenderCompID,
+    FIX::Symbol,
+    FIX::TargetCompID,
+    FIX::TargetSubID,
+    FIX::TransactTime,
+    FIX::ExecType,
+    FIX::SecurityExchange,
+    FIX::CustomTag
     >;
 
 TEST_CASE("FindTag", "[fix]")
 {
     const std::vector<int> tags = {
-        v2::FIX::MsgType::value,
-        v2::FIX::OrderID::value,
-        v2::FIX::Begin::value,
-        v2::FIX::OrderID::value,
-        v2::FIX::OrdStatus::value,
-        v2::FIX::MsgType::value,
-        v2::FIX::CustomTag::value,
-        v2::FIX::ExecType::value,
-        v2::FIX::TransactTime::value,
-        v2::FIX::Symbol::value,
-        v2::FIX::SenderCompID::value,
-        v2::FIX::SecurityExchange::value,
-        v2::FIX::TargetCompID::value,
-        v2::FIX::TargetSubID::value,
+        FIX::MsgType::value,
+        FIX::OrderID::value,
+        FIX::Begin::value,
+        FIX::OrderID::value,
+        FIX::OrdStatus::value,
+        FIX::MsgType::value,
+        FIX::CustomTag::value,
+        FIX::ExecType::value,
+        FIX::TransactTime::value,
+        FIX::Symbol::value,
+        FIX::SenderCompID::value,
+        FIX::SecurityExchange::value,
+        FIX::TargetCompID::value,
+        FIX::TargetSubID::value,
     };
 
     static_assert(boost::mpl::equal<Tags, ExpectedTags>::value);
@@ -99,18 +73,18 @@ TEST_CASE("FindTag", "[fix]")
 TEST_CASE("VerifyMapping", "[fix]")
 {
     const std::vector<int> sorted_tags = {
-        v2::FIX::Begin::value,
-        v2::FIX::MsgType::value,
-        v2::FIX::OrderID::value,
-        v2::FIX::OrdStatus::value,
-        v2::FIX::SenderCompID::value,
-        v2::FIX::Symbol::value,
-        v2::FIX::TargetCompID::value,
-        v2::FIX::TargetSubID::value,
-        v2::FIX::TransactTime::value,
-        v2::FIX::ExecType::value,
-        v2::FIX::SecurityExchange::value,
-        v2::FIX::CustomTag::value,
+        FIX::Begin::value,
+        FIX::MsgType::value,
+        FIX::OrderID::value,
+        FIX::OrdStatus::value,
+        FIX::SenderCompID::value,
+        FIX::Symbol::value,
+        FIX::TargetCompID::value,
+        FIX::TargetSubID::value,
+        FIX::TransactTime::value,
+        FIX::ExecType::value,
+        FIX::SecurityExchange::value,
+        FIX::CustomTag::value,
     };
 
     for (int i = 0; i < sorted_tags.size(); ++i) {
