@@ -7,6 +7,12 @@
 
 using namespace fixing;
 
+namespace MyFIX {
+
+using CustomTag  = FixTag<7999>;
+
+} /*MyFIX*/
+
 using Tags = MakeTags<
     FIX::MsgType,
     FIX::OrderID,
@@ -14,7 +20,7 @@ using Tags = MakeTags<
     FIX::OrderID,
     FIX::OrdStatus,
     FIX::MsgType,
-    FIX::CustomTag,
+    MyFIX::CustomTag,
     FIX::ExecType,
     FIX::TransactTime,
     FIX::Symbol,
@@ -36,7 +42,7 @@ using ExpectedTags = boost::mpl::vector<
     FIX::TransactTime,
     FIX::ExecType,
     FIX::SecurityExchange,
-    FIX::CustomTag
+    MyFIX::CustomTag
     >;
 
 TEST_CASE("FindTag", "[fix]")
@@ -48,7 +54,7 @@ TEST_CASE("FindTag", "[fix]")
         FIX::OrderID::value,
         FIX::OrdStatus::value,
         FIX::MsgType::value,
-        FIX::CustomTag::value,
+        MyFIX::CustomTag::value,
         FIX::ExecType::value,
         FIX::TransactTime::value,
         FIX::Symbol::value,
@@ -86,7 +92,7 @@ TEST_CASE("VerifyMapping", "[fix]")
         FIX::TransactTime::value,
         FIX::ExecType::value,
         FIX::SecurityExchange::value,
-        FIX::CustomTag::value,
+        MyFIX::CustomTag::value,
     };
 
     for (int i = 0; i < sorted_tags.size(); ++i) {
