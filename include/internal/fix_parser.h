@@ -22,7 +22,7 @@ using std::experimental::string_view;
 // TODO: move to a definitions file
 #define FIXING_LIKELY(x) __builtin_expect(x, 1)
 #define FIXING_UNLIKELY(x) __builtin_expect(x, 0)
-#define FIXING_UNREACHABLE() __builtin_unreachable()
+#define FIXING_UNREACHABLE() do { assert(0); __builtin_unreachable(); } while(0)
 #define FIXING_RESTRICT __restrict
 #define FIXING_HOT_FUNCTION __attribute__((hot))
 #define FIXING_COLD_FUNCTION __attribute__((cold, noinline))
@@ -140,8 +140,12 @@ private:
 
     struct ReadTagResult { int tag; int adv; };
 
+#ifdef BRANCHLESS_READ_TAG
+
     FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
     static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
+        assert(isdigit(c[0]) && "called read_tag on non-numeric character");
+
         const int r1 = (c[0] - '0')*1;
         const int r2 = (c[0] - '0')*10 + (c[1] - '0')*1;
         const int r3 = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
@@ -158,10 +162,39 @@ private:
         const bool c4 = !e1 && !e2 && !e3 & e4;
 
         assert(c1 || c2 || c3 || c4 && "couldn't find '='");
-        int tag = c1*r1 | c2*r2 | c3*r3 | c4*r4;
-        int adv = c1*2  | c2*3  | c3*4  | c4*5 ;
+        const int tag = c1*r1 | c2*r2 | c3*r3 | c4*r4;
+        const int adv = c1*2  | c2*3  | c3*4  | c4*5 ;
         return { tag, adv };
     }
+
+#else
+
+    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
+    static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
+        assert(isdigit(c[0]) && "called read_tag on non-numeric character");
+
+        if (c[1] == '=') {
+            const int tag = c[0] - '0';
+            const int adv = 2;
+            return { tag, adv };
+        } else if (c[2] == '=') {
+            const int tag = (c[0] - '0')*10 + (c[1] - '0')*1;
+            const int adv = 3;
+            return { tag, adv };
+        } else if (c[3] == '=') {
+            const int tag = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
+            const int adv = 4;
+            return { tag, adv };
+        } else if (c[4] == '=') {
+            const int tag = (c[0] - '0')*1000 + (c[1] - '0')*100 + (c[2] - '0')*10 + (c[3] - '0')*1;
+            const int adv = 5;
+            return { tag, adv };
+        } else {
+            FIXING_UNREACHABLE();
+        }
+    }
+
+#endif
 
 private:
     // TODO: is it possible to have an empty tag? i.e. is there
