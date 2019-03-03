@@ -2,6 +2,7 @@
 
 #include "find_tag.h"
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/find.hpp>
 #include <cstdint>
 #include <cstring>
 #include <cassert>
@@ -53,6 +54,7 @@ public:
 
     Parser() noexcept { reset(); }
 
+    // TODO: evaluate if better to have _version vs. resetting all tags.
     FIXING_HOT_FUNCTION
     void reset() FIXING_RESTRICT noexcept {
         memset(&_values[0], 0, sizeof(_values));
@@ -92,19 +94,15 @@ public:
         FIXING_IACA_END
     }
 
-    template <int Tag>
-    FIXING_HOT_FUNCTION /*FIXING_CONSTEXPR_FUNCTION*/
-    string_view get() const noexcept {
-        // TODO: can do this at compile time
-        /*constexpr*/ int tag = tag2idx<Tags>(Tag);
-        const Value& v = _values[tag];
-        return { _buffer + v.v[0], static_cast<size_t>(v.v[1] - v.v[0]) };
-    }
-
     template <class Tag>
-    FIXING_HOT_FUNCTION /*FIXING_CONSTEXPR_FUNCTION*/
+    FIXING_HOT_FUNCTION
     string_view get() const noexcept {
-        return get<Tag::value>();
+        using Begin = typename boost::mpl::begin<Tags>::type;
+        using Found = typename boost::mpl::find<Tags, Tag>::type;
+        using Index = typename boost::mpl::distance<Begin, Found>::type;
+        FIXING_CONSTEXPR int idx = Index::value;
+        const Value& v = _values[idx];
+        return { _buffer + v.v[0], static_cast<size_t>(v.v[1] - v.v[0]) };
     }
 
 private:
