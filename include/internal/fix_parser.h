@@ -70,6 +70,7 @@ public:
     {
         FIXING_IACA_START
 
+#if 0
         // TODO: can I use the fact that expecting at least "10=XXX" at the end
         ReadTagResult r = read_tag(begin);
         const char* cur = begin + r.adv;
@@ -92,24 +93,26 @@ public:
                 value = cur;
             }
         }
-
-#if 0
-        const char* cur = begin;
-        while (cur < end) {
-            assert(*(cur - 1) == '\001' && "parser expects to start 1 character passed FIX separator");
-            auto r = read_tag(cur);
-            cur += r.adv;
-            const char* const value = cur;
-            while (*cur != '\001') {
-                ++cur;
-            }
-            if (int idx = tag2idx<Tags>(tag)) {
-                _values[idx].v[0] = static_cast<uint16_t>(value - begin);
-                _values[idx].v[1] = static_cast<uint16_t>(cur - begin - 1);
-            }
-        }
 #endif
 
+#if 1
+        const char* cur = begin;
+        while (cur < end) {
+            assert(cur == begin || *(cur - 1) == '\001' &&
+                    "parser expects to start 1 character passed FIX separator");
+            const auto r = read_tag(cur);
+            cur += r.adv;
+            const char* const value = cur;
+            while (*cur++ != '\001') {}
+            int idx = tag2idx<Tags>(r.tag);
+            if (idx >= 0) {
+                _values[idx].v[0] = static_cast<uint16_t>(value - begin);
+                _values[idx].v[1] = static_cast<uint16_t>(cur - value - 1);
+            }
+            if (FIXING_UNLIKELY(r.tag == FIXING_CHECKSUM_TAG))
+                break;
+        }
+#endif
 
         _buffer = begin;
 
