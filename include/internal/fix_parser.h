@@ -105,6 +105,12 @@ public:
         using Begin = typename boost::mpl::begin<Tags>::type;
         using Found = typename boost::mpl::find<Tags, Tag>::type;
         using Index = typename boost::mpl::distance<Begin, Found>::type;
+
+        // if Tag isn't in Tags then this check will fail:
+        using FoundValue = typename boost::mpl::deref<Found>::type;
+        static_assert(FoundValue::value == Tag::value,
+                "Given tag is not present in Tags vector. Add tag to your parser type.");
+
         FIXING_CONSTEXPR int idx = Index::value;
         const Value& v = _values[idx];
         return { _buffer + v.v[0], static_cast<size_t>(v.v[1] - v.v[0]) };

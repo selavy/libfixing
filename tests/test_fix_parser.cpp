@@ -58,6 +58,10 @@ TEST_CASE("Parse FIX message #1", "[fix_parser]")
     auto exectype = p.get<FIX::ExecType>();
     REQUIRE(exectype == "0");
 
+    // // Test for error message on accessing type that isn't in Tags
+    // auto targetcompid = p.get<FIX::TargetCompID>();
+    // REQUIRE(targetcompid.empty());
+
     auto customtag = p.get<MyFIX::CustomTag>();
     REQUIRE(customtag == "Peter's Custom Tag That Has Data");
 }
