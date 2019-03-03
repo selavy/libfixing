@@ -73,7 +73,7 @@ public:
         // TODO: can I use the fact that expecting at least "10=XXX" at the end
         ReadTagResult r = read_tag(begin);
         int tag = r.tag;
-        const char* cur = begin + r.mov;
+        const char* cur = begin + r.adv;
         const char* value = cur;
         assert(*(cur - 1) == '=' && "didn't read tag correctly");
         while (cur < end) {
@@ -86,7 +86,7 @@ public:
                 }
                 r = read_tag(cur);
                 tag = r.tag;
-                cur += r.mov;
+                cur += r.adv;
                 if (FIXING_UNLIKELY(tag == FIXING_CHECKSUM_TAG)) {
                     break;
                 }
@@ -112,7 +112,7 @@ public:
 
 private:
 
-    struct ReadTagResult { int tag; int mov; };
+    struct ReadTagResult { int tag; int adv; };
 
     FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
     static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
@@ -133,11 +133,14 @@ private:
 
         assert(c1 || c2 || c3 || c4 && "couldn't find '='");
         int tag = c1*r1 | c2*r2 | c3*r3 | c4*r4;
-        int mov = c1*2  | c2*3  | c3*4  | c4*5 ;
-        return { tag, mov };
+        int adv = c1*2  | c2*3  | c3*4  | c4*5 ;
+        return { tag, adv };
     }
 
 private:
+    // TODO: is it possible to have an empty tag? i.e. is there
+    // ever a reason to differentiate between empty and not present?
+
     // make as std::pair<uint16_t, uint16_t>, but using this to reduce compile time
     // because I don't need all the machinery around pair<> and tuple<>
     struct Value { uint16_t v[2]; };
