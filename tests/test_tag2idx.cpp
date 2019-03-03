@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "fixing.h"
 
+using namespace fixing;
+
 using Tags = MakeTags<
     FIX::MsgType,
     FIX::OrderID,

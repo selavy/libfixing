@@ -10,7 +10,7 @@
 #include <boost/mpl/begin_end.hpp>
 #include <boost/mpl/next_prior.hpp>
 
-// TODO: namespace
+namespace fixing {
 
 template <class... Tags>
 using MakeTags = typename boost::mpl::unique<
@@ -67,3 +67,5 @@ template <class Seq>
 bool find_tag(int tag) {
     return tag2idx<Seq>(tag) >= 0;
 }
+
+} /*fixing*/

@@ -2,6 +2,8 @@
 
 #include <boost/mpl/int.hpp>
 
+namespace fixing {
+
 template <int N>
 struct FixTag : boost::mpl::int_<N> {};
 
@@ -23,3 +25,5 @@ using SecurityExchange = FixTag<207>;
 using CustomTag        = FixTag<7999>;
 
 } /*FIX*/
+
+}
