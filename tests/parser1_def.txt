@@ -1,0 +1,11 @@
+# Parser #1
+ClOrdID
+OrigClOrdID
+OrdType
+LastQty
+Price
+SendingTime
+Quantity
+Symbol
+ExecType
+LegFactor
