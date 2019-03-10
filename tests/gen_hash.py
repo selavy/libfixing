@@ -159,31 +159,6 @@ def output_mapping(values, hashed):
         print("% 3d -> % 3d" % (v, vv[v]))
 
 
-def solve2(parser, values, m, print_mapping=True):
-    bits = math.ceil(math.log(m, 2))
-    print("%d requires %d bits" % (m, bits))
-    M = find_next_power_of_2(m)
-    for i in range(3):
-        for p in PRIMES:
-            def h(k):
-                dtype = c_uint32
-                r1 = dtype(k*p)
-                r2 = dtype(r1.value % M)
-                # return (k^p) % M
-                return r2.value
-
-            hashed = [h(v) for v in values]
-            success = no_collisions(hashed)
-            if success:
-                print("Success!")
-                print("P = %d, M = %d, N = %d" % (p, M, len(values)))
-                if print_mapping:
-                    output_mapping(values, hashed)
-                return True
-        M = find_next_power_of_2(M+1)
-    return False
-
-
 def solve(parser, values, m, iters=10000, print_mapping=False):
     for i in range(50):
         p = PRIMES[random.randint(0, len(PRIMES) - 1)]
@@ -192,7 +167,6 @@ def solve(parser, values, m, iters=10000, print_mapping=False):
             while b == a:
                 b = random.randint(0, maxval)
             hashed = [hash1(k=x, a=a, b=b, p=p, m=m) for x in values]
-            # no_collisions = len(set(hashed)) == len(hashed)
             success = no_collisions(hashed)
             if success:
                 print("Success!")
@@ -215,9 +189,6 @@ if __name__ == '__main__':
     m = len(values)
     if args.power_of_two:
         m = find_next_power_of_2(m)
-
-    if not solve2(parser, values, m=m, print_mapping=args.print_mapping):
-        print("Failed version 2 :(")
 
     if not solve(parser, values, m=m, print_mapping=args.print_mapping):
         print("Failed :(")
