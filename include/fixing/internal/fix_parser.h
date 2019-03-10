@@ -4,10 +4,6 @@
 #include "find_tag.h"
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/find.hpp>
-#include <cstdint>
-#include <cstring>
-#include <cassert>
-
 
 namespace fixing {
 

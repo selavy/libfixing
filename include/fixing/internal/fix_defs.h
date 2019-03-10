@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cstdint>
+#include <cassert>
+#include <cstring>
+
+// TODO: use CMake to detect this
 #ifdef HAVE_STD_STRING_VIEW
 
 #include <string_view>
