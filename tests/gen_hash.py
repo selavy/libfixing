@@ -148,7 +148,7 @@ def find_next_power_of_2(x):
     return int(2**(math.ceil(math.log(x, 2))))
 
 
-def solve(values, m, iters=10000, print_mapping=False):
+def solve(parser, values, m, iters=10000, print_mapping=False):
     for i in range(50):
         p = PRIMES[random.randint(0, len(PRIMES) - 1)]
         for _ in range(iters):
@@ -182,5 +182,5 @@ if __name__ == '__main__':
     if args.power_of_two:
         m = find_next_power_of_2(m)
 
-    if not solve(values, m=m, print_mapping=args.print_mapping):
+    if not solve(parser, values, m=m, print_mapping=args.print_mapping):
         print("Failed :(")
