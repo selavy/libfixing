@@ -1,67 +1,10 @@
 #!/usr/bin/env python
 
+import argparse
 import random
 import math
 import pprint
-import sys
 from ctypes import c_uint32
-
-
-def read_fix_tags_from_handle(f):
-    result = {}
-    for line in f:
-        line = line.strip()
-        if not line or line[0] == '#':
-            continue
-        parts = line.split()
-        if parts < 2:
-            raise Exception("Error: malformed line: '%s'" % line)
-        tag, name = parts[0:2]
-        result[name] = int(tag)
-    return result
-
-
-def read_fix_tags(filename):
-    with open(filename, 'r') as f:
-        return read_fix_tags_from_handle(f)
-
-
-def read_parser_def_from_handle(f, fix_tags):
-    result = {}
-    for line in f:
-        line = line.strip()
-        if not line or line[0] == '#':
-            continue
-        parts = line.split()
-        if len(parts) == 1:
-            try:
-                value = fix_tags[parts[0]]
-            except ValueError:
-                raise ValueError("Unknown FIX tag: '%s'. Please add to fix_tags.txt" % parts[0])
-            name = parts[0]
-        elif len(parts) == 2:
-            name, value = parts[0:2]
-        else:
-            raise Exception("Error: malformed line: '%s'" % line)
-        name = str(name)
-        value = int(value)
-        if name in result:
-            raise ValueError("Duplicate tag name: '%s'" % name)
-        result[name] = value
-    # check for duplicated values
-    values = {}
-    for tag1, value in result.iteritems():
-        try:
-            tag2 = values[value]
-            raise Exception("Duplicated tag value %d between tags %s and %s" % (value, tag1, tag2))
-        except KeyError:
-            values[value] = tag1
-    return result
-
-
-def read_parser_def(filename, fix_tags):
-    with open(filename, 'r') as f:
-        return read_parser_def_from_handle(f, fix_tags)
 
 
 PRIMES = [
@@ -121,6 +64,76 @@ PRIMES = [
 ]
 
 
+def get_cmdline():
+    parser = argparse.ArgumentParser('FixParser Perfect Hash Generator')
+    parser.add_argument('-f', '--parser-def', required=True,
+                        help='Parser definition file.')
+    parser.add_argument('-d', '--fix-defs', default='fix_tags.txt',
+                        help='FIX tag definition file.')
+    parser.add_argument('-t', '--power-of-two', action='store_true',
+                        help='Force M to be power of 2.')
+    parser.add_argument('-m', '--print-mapping', action='store_true',
+                        help='Print mapping.')
+    return parser.parse_args()
+
+
+def read_fix_tags_from_handle(f):
+    result = {}
+    for line in f:
+        line = line.strip()
+        if not line or line[0] == '#':
+            continue
+        parts = line.split()
+        if parts < 2:
+            raise Exception("Error: malformed line: '%s'" % line)
+        tag, name = parts[0:2]
+        result[name] = int(tag)
+    return result
+
+
+def read_fix_tags(filename):
+    with open(filename, 'r') as f:
+        return read_fix_tags_from_handle(f)
+
+
+def read_parser_def_from_handle(f, fix_tags):
+    result = {}
+    for line in f:
+        line = line.strip()
+        if not line or line[0] == '#':
+            continue
+        parts = line.split()
+        if len(parts) == 1:
+            try:
+                value = fix_tags[parts[0]]
+            except ValueError:
+                raise ValueError("Unknown FIX tag: '%s'. Please add to fix_tags.txt" % parts[0])
+            name = parts[0]
+        elif len(parts) == 2:
+            name, value = parts[0:2]
+        else:
+            raise Exception("Error: malformed line: '%s'" % line)
+        name = str(name)
+        value = int(value)
+        if name in result:
+            raise ValueError("Duplicate tag name: '%s'" % name)
+        result[name] = value
+    # check for duplicated values
+    values = {}
+    for tag1, value in result.iteritems():
+        try:
+            tag2 = values[value]
+            raise Exception("Duplicated tag value %d between tags %s and %s" % (value, tag1, tag2))
+        except KeyError:
+            values[value] = tag1
+    return result
+
+
+def read_parser_def(filename, fix_tags):
+    with open(filename, 'r') as f:
+        return read_parser_def_from_handle(f, fix_tags)
+
+
 def hash1(k, a, b, p, m):
     # result = (a*k + b) % p % m
     dtype = c_uint32
@@ -135,7 +148,7 @@ def find_next_power_of_2(x):
     return int(2**(math.ceil(math.log(x, 2))))
 
 
-def solve(values, m, iters=10000):
+def solve(values, m, iters=10000, print_mapping=False):
     for i in range(50):
         p = PRIMES[random.randint(0, len(PRIMES) - 1)]
         for _ in range(iters):
@@ -147,7 +160,7 @@ def solve(values, m, iters=10000):
             if no_collisions:
                 print("Success!")
                 print("A = %d, B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
-                if 1:
+                if print_mapping:
                     print("Mapping:")
                     vv = dict(zip(hashed, values))
                     for v in sorted(vv.keys()):
@@ -157,40 +170,17 @@ def solve(values, m, iters=10000):
 
 
 if __name__ == '__main__':
-    # TODO: get from command line
-    fix_tags = read_fix_tags('fix_tags.txt')
-    parser = read_parser_def('parser1_def.txt', fix_tags)
-    pprint.pprint(parser)
+    args = get_cmdline()
+
+    fix_tags = read_fix_tags(args.fix_defs)
+    parser = read_parser_def(args.parser_def, fix_tags)
 
     values = list(parser.values())
     maxval = (1 << 32) - 1
-    m1 = len(values)
-    m2 = find_next_power_of_2(m1 + 1)
-    # if solve(values, m=m1):
-    #     print("Success")
-    if solve(values, m=m2):
-        print("Rounded up to power of 2. Success!")
-    else:
+
+    m = len(values)
+    if args.power_of_two:
+        m = find_next_power_of_2(m)
+
+    if not solve(values, m=m, print_mapping=args.print_mapping):
         print("Failed :(")
-
-    # for i in range(5):
-    #     # m = len(values) + i
-    #     m = len(values)
-    #     p = PRIMES[random.randint(0, len(PRIMES) - 1)]
-    #     for _ in range(100000):
-    #         a = b = random.randint(0, maxval)
-    #         while b == a:
-    #             b = random.randint(0, maxval)
-    #         hashed = [hash1(k=x, a=a, b=b, p=p, m=m) for x in values]
-    #         no_collisions = len(set(hashed)) == len(hashed)
-    #         if no_collisions:
-    #             print("Success!")
-    #             print("A = %dk B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
-    #             if 1:
-    #                 print("Mapping:")
-    #                 vv = dict(zip(hashed, values))
-    #                 for v in sorted(vv.keys()):
-    #                     print("% 3d -> % 3d" % (v, vv[v]))
-    #             sys.exit(0)
-    # print("Failed :(")
-
