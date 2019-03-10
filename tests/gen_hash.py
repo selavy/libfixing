@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import random
+import math
 import pprint
 import sys
 from ctypes import c_uint32
@@ -130,6 +131,31 @@ def hash1(k, a, b, p, m):
     return int(r4.value)
 
 
+def find_next_power_of_2(x):
+    return int(2**(math.ceil(math.log(x, 2))))
+
+
+def solve(values, m, iters=10000):
+    for i in range(50):
+        p = PRIMES[random.randint(0, len(PRIMES) - 1)]
+        for _ in range(iters):
+            a = b = random.randint(0, maxval)
+            while b == a:
+                b = random.randint(0, maxval)
+            hashed = [hash1(k=x, a=a, b=b, p=p, m=m) for x in values]
+            no_collisions = len(set(hashed)) == len(hashed)
+            if no_collisions:
+                print("Success!")
+                print("A = %d, B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
+                if 1:
+                    print("Mapping:")
+                    vv = dict(zip(hashed, values))
+                    for v in sorted(vv.keys()):
+                        print("% 3d -> % 3d" % (v, vv[v]))
+                return True
+    return False
+
+
 if __name__ == '__main__':
     # TODO: get from command line
     fix_tags = read_fix_tags('fix_tags.txt')
@@ -138,26 +164,33 @@ if __name__ == '__main__':
 
     values = list(parser.values())
     maxval = (1 << 32) - 1
-    for i in range(5):
-        # m = len(values) + i
-        m = len(values)
-        p = PRIMES[random.randint(0, len(PRIMES) - 1)]
-        for _ in range(100000):
-            a = b = random.randint(0, maxval)
-            while b == a:
-                b = random.randint(0, maxval)
-            hashed = [hash1(k=x, a=a, b=b, p=p, m=m) for x in values]
-            no_collisions = len(set(hashed)) == len(hashed)
-            if no_collisions:
-                print("Success!")
-                print("A = %dk B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
-                print("Mapping:")
-                vv = dict(zip(hashed, values))
-                for v in sorted(vv.keys()):
-                    print("% 3d -> % 3d" % (v, vv[v]))
+    m1 = len(values)
+    m2 = find_next_power_of_2(m1 + 1)
+    # if solve(values, m=m1):
+    #     print("Success")
+    if solve(values, m=m2):
+        print("Rounded up to power of 2. Success!")
+    else:
+        print("Failed :(")
 
-                # for k, h in zip(values, hashed):
-                #     print("%d -> %d" % (k, h))
-                sys.exit(0)
-    print("Failed :(")
+    # for i in range(5):
+    #     # m = len(values) + i
+    #     m = len(values)
+    #     p = PRIMES[random.randint(0, len(PRIMES) - 1)]
+    #     for _ in range(100000):
+    #         a = b = random.randint(0, maxval)
+    #         while b == a:
+    #             b = random.randint(0, maxval)
+    #         hashed = [hash1(k=x, a=a, b=b, p=p, m=m) for x in values]
+    #         no_collisions = len(set(hashed)) == len(hashed)
+    #         if no_collisions:
+    #             print("Success!")
+    #             print("A = %dk B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
+    #             if 1:
+    #                 print("Mapping:")
+    #                 vv = dict(zip(hashed, values))
+    #                 for v in sorted(vv.keys()):
+    #                     print("% 3d -> % 3d" % (v, vv[v]))
+    #             sys.exit(0)
+    # print("Failed :(")
 
