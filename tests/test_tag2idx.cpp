@@ -64,7 +64,7 @@ TEST_CASE("FindTag", "[fix]")
         FIX::TargetSubID::value,
     };
 
-    static_assert(boost::mpl::equal<Tags, ExpectedTags>::value);
+    static_assert(boost::mpl::equal<Tags, ExpectedTags>::value, "");
 
     for (auto tag : tags) {
         auto result = find_tag<Tags>(tag);
@@ -95,7 +95,8 @@ TEST_CASE("VerifyMapping", "[fix]")
         MyFIX::CustomTag::value,
     };
 
-    for (int i = 0; i < sorted_tags.size(); ++i) {
+    const int ntags = sorted_tags.size();
+    for (int i = 0; i < ntags; ++i) {
         int tag = sorted_tags[i];
         REQUIRE(tag2idx<Tags>(tag) == i);
     }
