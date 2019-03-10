@@ -152,8 +152,12 @@ if __name__ == '__main__':
                 print("Success!")
                 print("A = %dk B = %d, P = %d, M = %d, N = %d" % (a, b, p, m, len(values)))
                 print("Mapping:")
-                for k, h in zip(values, hashed):
-                    print("%d -> %d" % (k, h))
+                vv = dict(zip(hashed, values))
+                for v in sorted(vv.keys()):
+                    print("% 3d -> % 3d" % (v, vv[v]))
+
+                # for k, h in zip(values, hashed):
+                #     print("%d -> %d" % (k, h))
                 sys.exit(0)
     print("Failed :(")
 
