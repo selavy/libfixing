@@ -98,7 +98,7 @@ public:
 #if 1
         const char* cur = begin;
         while (cur < end) {
-            assert(cur == begin || *(cur - 1) == FIXING_FIX_SEPARATOR &&
+            assert((cur == begin || *(cur - 1)) == FIXING_FIX_SEPARATOR &&
                     "parser expects to start 1 character passed FIX separator");
             const auto r = read_tag(cur);
             cur += r.adv;
@@ -140,6 +140,7 @@ private:
 
     struct ReadTagResult { int tag; int adv; };
 
+#define BRANCHLESS_READ_TAG
 #ifdef BRANCHLESS_READ_TAG
 
     FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
@@ -157,11 +158,11 @@ private:
         const int e4 = c[4] == '=';
 
         const bool c1 =  e1;
-        const bool c2 = !e1 &&  e2;
-        const bool c3 = !e1 && !e2 && e3;
-        const bool c4 = !e1 && !e2 && !e3 & e4;
+        const bool c2 = !e1 &  e2;
+        const bool c3 = !e1 & !e2 & e3;
+        const bool c4 = !e1 & !e2 & !e3 & e4;
 
-        assert(c1 || c2 || c3 || c4 && "couldn't find '='");
+        assert((c1 || c2 || c3 || c4) && "couldn't find '='");
         const int tag = c1*r1 | c2*r2 | c3*r3 | c4*r4;
         const int adv = c1*2  | c2*3  | c3*4  | c4*5 ;
         return { tag, adv };
