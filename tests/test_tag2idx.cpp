@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <algorithm>
-#include "fixing.h"
+#include "fixing/fixing.h"
 
 using namespace fixing;
 

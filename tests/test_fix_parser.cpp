@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "fixing.h"
+#include "fixing/fixing.h"
 #include <string>
 #include <algorithm>
 
