@@ -26,7 +26,6 @@ using std::experimental::string_view;
 #define FIXING_UNLIKELY(x) __builtin_expect(x, 0)
 #define FIXING_UNREACHABLE() do { assert(0); __builtin_unreachable(); } while(0)
 #define FIXING_RESTRICT __restrict
-#define FIXING_HOT_FUNCTION __attribute__((hot))
 #define FIXING_COLD_FUNCTION __attribute__((cold, noinline))
 #define FIXING_CONSTEXPR_FUNCTION constexpr
 #define FIXING_CONSTEXPR constexpr

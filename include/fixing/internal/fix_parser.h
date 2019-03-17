@@ -19,68 +19,40 @@ public:
     Parser() noexcept { reset(); }
 
     // TODO: evaluate if better to have _version vs. resetting all tags.
-    FIXING_HOT_FUNCTION
     void reset() FIXING_RESTRICT noexcept {
         memset(&_values[0], 0, sizeof(_values));
     }
 
-    FIXING_HOT_FUNCTION
     void parse(const char* const FIXING_RESTRICT begin,
                const char* const FIXING_RESTRICT end) FIXING_RESTRICT noexcept
     {
         FIXING_IACA_START
 
-#if 0
-        // TODO: can I use the fact that expecting at least "10=XXX" at the end
-        ReadTagResult r = read_tag(begin);
-        const char* cur = begin + r.adv;
-        const char* value = cur;
-        assert(*(cur - 1) == '=' && "didn't read tag correctly");
-        while (cur < end) {
-            const char c = *cur++;
-            if (FIXING_UNLIKELY(c == '\001')) {
-                const int idx = tag2idx<Tags>(r.tag);
-                if (idx >= 0) {
-                    _values[idx].v[0] = static_cast<uint16_t>(value - begin);
-                    _values[idx].v[1] = static_cast<uint16_t>(cur - value -1);
-                }
-                r = read_tag(cur);
-                cur += r.adv;
-                if (FIXING_UNLIKELY(r.tag == FIXING_CHECKSUM_TAG)) {
-                    break;
-                }
-                assert(*(cur - 1) == '=' && "didn't read tag correctly");
-                value = cur;
-            }
-        }
-#endif
-
-#if 1
         const char* cur = begin;
+        const char* val;
+        int idx;
+        ReadTag r;
         while (cur < end) {
-            assert((cur == begin || *(cur - 1)) == FIXING_FIX_SEPARATOR &&
+            assert(((cur == begin || *(cur - 1)) == FIXING_FIX_SEPARATOR) &&
                     "parser expects to start 1 character passed FIX separator");
-            const auto r = read_tag(cur);
+            r = read_tag(cur);
             cur += r.adv;
-            const char* const value = cur;
+            val = cur;
             while (*cur++ != FIXING_FIX_SEPARATOR) {}
-            int idx = tag2idx<Tags>(r.tag);
+            idx = tag2idx<Tags>(r.tag);
             if (idx >= 0) {
-                _values[idx].v[0] = static_cast<uint16_t>(value - begin);
-                _values[idx].v[1] = static_cast<uint16_t>(cur - value - 1);
+                auto& v = _values[idx];
+                v.off = static_cast<uint16_t>(val - begin);
+                v.len = static_cast<uint16_t>(cur - val - 1);
             }
-            if (FIXING_UNLIKELY(r.tag == FIXING_CHECKSUM_TAG))
-                break;
         }
-#endif
-
         _buffer = begin;
 
         FIXING_IACA_END
     }
 
     template <class Tag>
-    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION FIXING_NODISCARD
+    FIXING_CONSTEXPR_FUNCTION FIXING_NODISCARD
     string_view get() const FIXING_RESTRICT noexcept {
         using Begin = typename boost::mpl::begin<Tags>::type;
         using Found = typename boost::mpl::find<Tags, Tag>::type;
@@ -93,24 +65,25 @@ public:
 
         FIXING_CONSTEXPR int idx = Index::value;
         const Value& v = _values[idx];
-        return { _buffer + v.v[0], static_cast<size_t>(v.v[1]) };
+        return { _buffer + v.off, static_cast<std::size_t>(v.len) };
     }
 
 private:
 
-    struct ReadTagResult { int tag; int adv; };
+    struct ReadTag { int tag; int adv; };
 
-#define BRANCHLESS_READ_TAG
+// #define BRANCHLESS_READ_TAG
 #ifdef BRANCHLESS_READ_TAG
 
-    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
-    static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
+    // TODO: fix me
+    FIXING_CONSTEXPR_FUNCTION
+    static ReadTag read_tag(const char* FIXING_RESTRICT const c) noexcept {
         assert(isdigit(c[0]) && "called read_tag on non-numeric character");
 
         const int r1 = (c[0] - '0')*1;
-        const int r2 = (c[0] - '0')*10 + (c[1] - '0')*1;
-        const int r3 = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
-        const int r4 = (c[0] - '0')*1000 + (c[1] - '0')*100 + (c[2] - '0')*10 + (c[3] - '0')*1;
+        const int r2 = (c[0] - '0')*10    + (c[1] - '0')*1;
+        const int r3 = (c[0] - '0')*100   + (c[1] - '0')*10   + (c[2] - '0')*1;
+        const int r4 = (c[0] - '0')*1000  + (c[1] - '0')*100  + (c[2] - '0')*10  + (c[3] - '0')*1;
         const int r5 = (c[0] - '0')*10000 + (c[1] - '0')*1000 + (c[2] - '0')*100 + (c[3] - '0')*10 + (c[4] - '0')*1;
 
         const int e1 = c[1] == '=';
@@ -121,8 +94,8 @@ private:
 
         const bool c1 =  e1;
         const bool c2 = !e1 &  e2;
-        const bool c3 = !e1 & !e2 & e3;
-        const bool c4 = !e1 & !e2 & !e3 & e4;
+        const bool c3 = !e1 & !e2 &  e3;
+        const bool c4 = !e1 & !e2 & !e3 &  e4;
         const bool c5 = !e1 & !e2 & !e3 & !e4 & e5;
 
         assert((c1 || c2 || c3 || c4 || c5) && "couldn't find '='");
@@ -133,8 +106,8 @@ private:
 
 #else
 
-    FIXING_HOT_FUNCTION FIXING_CONSTEXPR_FUNCTION
-    static ReadTagResult read_tag(const char* FIXING_RESTRICT const c) noexcept {
+    FIXING_CONSTEXPR_FUNCTION
+    static ReadTag read_tag(const char* FIXING_RESTRICT const c) noexcept {
         assert(isdigit(c[0]) && "called read_tag on non-numeric character");
 
         if (c[1] == '=') {
@@ -170,7 +143,7 @@ private:
 
     // make as std::pair<uint16_t, uint16_t>, but using this to reduce compile time
     // because I don't need all the machinery around pair<> and tuple<>
-    struct Value { uint16_t v[2]; };
+    struct Value { uint16_t off, len; };
 
     const char* _buffer;
     Value _values[NTAGS];
