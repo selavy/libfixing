@@ -4,6 +4,7 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/placeholders.hpp>
+#include <cassert>
 
 // TODO: merge this with fix_parser.h via policy classes
 // TODO: use versioning instead of reset
@@ -44,7 +45,7 @@ public:
 
         const char* cur = begin;
         const char* val;
-        int idx;
+        uint32_t idx;
         ReadTag r;
         while (cur < end) {
             assert(((cur == begin || *(cur - 1)) == FIXING_FIX_SEPARATOR) &&
@@ -54,7 +55,7 @@ public:
             val = cur;
             while (*cur++ != FIXING_FIX_SEPARATOR) ;
             idx = Hash::hash(r.tag);
-            assert((idx >= 0 && idx < NTAGS));
+            assert((idx >= 0 && idx < TABLE_SIZE));
             if (r.tag == _tags[idx]) {
                 _values[idx].off = static_cast<uint16_t>(val - begin);
                 _values[idx].len = static_cast<uint16_t>(cur - val - 1);
@@ -75,8 +76,8 @@ public:
         static_assert(FoundValue::value == Tag::value,
                 "Given tag is not present in Tags vector. Add tag to your parser type.");
 
-        constexpr int idx = Hash::hash(Tag::value);
-        assert(idx >= 0 && idx < NTAGS && _tags[idx] == Value::tag);
+        constexpr uint32_t idx = Hash::hash(Tag::value);
+        assert(idx >= 0 && idx < TABLE_SIZE);
 
         const Value& v = _values[idx];
         return { _buffer + v.off, static_cast<std::size_t>(v.len) };
@@ -127,24 +128,24 @@ private:
         assert(isdigit(c[0]) && "called read_tag on non-numeric character");
 
         if (c[1] == '=') {
-            const int tag = c[0] - '0';
-            const int adv = 2;
+            const uint32_t tag = c[0] - '0';
+            const uint32_t adv = 2;
             return { tag, adv };
         } else if (c[2] == '=') {
-            const int tag = (c[0] - '0')*10 + (c[1] - '0')*1;
-            const int adv = 3;
+            const uint32_t tag = (c[0] - '0')*10 + (c[1] - '0')*1;
+            const uint32_t adv = 3;
             return { tag, adv };
         } else if (c[3] == '=') {
-            const int tag = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
-            const int adv = 4;
+            const uint32_t tag = (c[0] - '0')*100 + (c[1] - '0')*10 + (c[2] - '0')*1;
+            const uint32_t adv = 4;
             return { tag, adv };
         } else if (c[4] == '=') {
-            const int tag = (c[0] - '0')*1000 + (c[1] - '0')*100 + (c[2] - '0')*10 + (c[3] - '0')*1;
-            const int adv = 5;
+            const uint32_t tag = (c[0] - '0')*1000 + (c[1] - '0')*100 + (c[2] - '0')*10 + (c[3] - '0')*1;
+            const uint32_t adv = 5;
             return { tag, adv };
         } else if (c[5] == '=') {
-            const int tag = (c[0] - '0')*10000 + (c[1] - '0')*1000 + (c[2] - '0')*100 + (c[3] - '0')*10 + (c[4] - '0')*1;
-            const int adv = 6;
+            const uint32_t tag = (c[0] - '0')*10000 + (c[1] - '0')*1000 + (c[2] - '0')*100 + (c[3] - '0')*10 + (c[4] - '0')*1;
+            const uint32_t adv = 6;
             return { tag, adv };
         } else {
             FIXING_UNREACHABLE();
