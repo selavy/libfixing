@@ -164,6 +164,38 @@ def solve2(m, tags):
     print("Failed.")
 
 
+def solve3(m, tags):
+    def pickprime():
+        return PRIMES[random.randint(0, len(PRIMES)-1)]
+
+    def pickshift():
+        return random.randint(1, 31)
+
+    for i in range(100):
+        p1 = pickprime()
+
+        for j in range(100):
+            s1 = pickshift()
+            s2 = pickshift()
+
+            def h(k):
+                c1 = DTYPE(k ^ DTYPE(k >> s1).value)
+                c2 = DTYPE(c1.value * p1)
+                c3 = DTYPE(c2.value ^ DTYPE(c2.value >> s2).value)
+                return c3.value % m
+
+            hashed = tuple(h(k) for k in tags)
+            success = len(hashed) == len(set(hashed))
+            if success:
+                print("P1 = %d, S1 = %d, S2 = %d" %
+                      (p1, s1, s2, ))
+                for tag, hh in zip(tags, hashed):
+                    print("%d -> %d" % (tag, hh))
+                return
+
+    print("Failed.")
+
+
 if __name__ == '__main__':
     args = get_cmdline()
     tags = tuple(sorted({int(x) for x in args.tags}))
@@ -173,3 +205,4 @@ if __name__ == '__main__':
 
     solve1(m, tags)
     solve2(m, tags)
+    solve3(m, tags)
