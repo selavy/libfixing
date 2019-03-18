@@ -108,6 +108,62 @@ def solve1(m, tags):
     print("Failed.")
 
 
+# static U32 XXH32_avalanche(U32 h32)
+# {
+#     h32 ^= h32 >> 15;
+#     h32 *= PRIME32_2;
+#     h32 ^= h32 >> 13;
+#     h32 *= PRIME32_3;
+#     h32 ^= h32 >> 16;
+#     return(h32);
+# }
+
+# static U64 XXH64_avalanche(U64 h64)
+# {
+#     h64 ^= h64 >> 33;
+#     h64 *= PRIME64_2;
+#     h64 ^= h64 >> 29;
+#     h64 *= PRIME64_3;
+#     h64 ^= h64 >> 32;
+#     return h64;
+# }
+
+def solve2(m, tags):
+    def pickprime():
+        return PRIMES[random.randint(0, len(PRIMES)-1)]
+
+    def pickshift():
+        return random.randint(1, 31)
+
+    for i in range(100):
+        p1 = pickprime()
+        p2 = pickprime()
+
+        for j in range(100):
+            s1 = pickshift()
+            s2 = pickshift()
+            s3 = pickshift()
+
+            def h(k):
+                c1 = DTYPE(k ^ DTYPE(k >> s1).value)
+                c2 = DTYPE(c1.value * p1)
+                c3 = DTYPE(c2.value ^ DTYPE(c2.value >> s2).value)
+                c4 = DTYPE(c3.value * p2)
+                c5 = DTYPE(c4.value ^ DTYPE(c4.value >> s3).value)
+                return c5.value % m
+
+            hashed = tuple(h(k) for k in tags)
+            success = len(hashed) == len(set(hashed))
+            if success:
+                print("P1 = %d, P2 = %d, S1 = %d, S2 = %d, S3 = %d" %
+                      (p1, p2, s1, s2, s3))
+                for tag, hh in zip(tags, hashed):
+                    print("%d -> %d" % (tag, hh))
+                return
+
+    print("Failed.")
+
+
 if __name__ == '__main__':
     args = get_cmdline()
     tags = tuple(sorted({int(x) for x in args.tags}))
@@ -116,3 +172,4 @@ if __name__ == '__main__':
         m = find_next_power_of_2(m)
 
     solve1(m, tags)
+    solve2(m, tags)
