@@ -13,6 +13,8 @@ namespace fixing {
 
 template <uint32_t A, uint32_t B, uint32_t P, uint32_t M>
 struct Hash_ModPrime {
+    // TODO: verify that P is prime
+
 	static constexpr uint32_t TABLE_SIZE = M;
 
     static constexpr uint32_t hash(uint32_t k) noexcept {
@@ -22,6 +24,8 @@ struct Hash_ModPrime {
 
 template <uint32_t A, uint32_t B, uint32_t P, uint32_t M>
 struct Hash_XOR_Simple {
+    // TODO: verify that P is prime
+
     static constexpr uint32_t TABLE_SIZE = M;
 
 
