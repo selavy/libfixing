@@ -28,3 +28,8 @@ target_include_directories(Catch2 INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     )
 
+# Google.Benchmark
+option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
+option(BENCHMARK_ENABLE_INSTALL "Enable installation of benchmark. (Projects embedding benchmark may want to turn this OFF.)" OFF)
+option(BENCHMARK_ENABLE_GTEST_TESTS "Enable building the unit tests which depend on gtest" OFF)
+add_subdirectory(benchmark)

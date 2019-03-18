@@ -57,6 +57,9 @@ int main(int argc, char** argv)
     auto result1 = find_tag1(&*msg.begin(), &*msg.end());
     auto result2 = find_tag1(&*msg.begin(), &*msg.end());
     assert(result1 == result2);
+    if (result1 != result2) {
+        printf("FAILED\n");
+    }
 
     return 0;
 }

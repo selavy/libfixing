@@ -30,3 +30,4 @@ target_link_libraries(DefaultFlags INTERFACE
 add_subdirectory(third_party)
 add_subdirectory(include)
 add_subdirectory(tests)
+add_subdirectory(benchs)
