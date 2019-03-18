@@ -93,4 +93,19 @@ static void BM_FixParser_Simple(benchmark::State& state) {
 }
 BENCHMARK(BM_FixParser_Simple);
 
+static void BM_FixParser_XOR(benchmark::State& state) {
+    FixParser<Hash_XOR<4, 5, 16>, Tags> p;
+    const std::string msg = get_fix_message();
+    int64_t deopt = 0;
+    for (auto _ : state) {
+        p.parse(&*msg.begin(), &*msg.end());
+        deopt += p.get<FIX::Begin>()[0];
+        deopt += p.get<FIX::MsgType>()[0];
+    }
+    if (deopt == 0) {
+        printf("WOO\n");
+    }
+}
+BENCHMARK(BM_FixParser_XOR);
+
 BENCHMARK_MAIN();

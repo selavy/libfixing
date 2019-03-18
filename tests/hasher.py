@@ -230,6 +230,59 @@ def solve4(m, tags):
                 return
     print("Failed.")
 
+
+def solve5(m, tags):
+    print("\nSOLVER5")
+
+    def pickshift():
+        return random.randint(1, 31)
+
+    for i in range(1000):
+        s1 = pickshift()
+        s2 = pickshift()
+
+        def h(k):
+            c1 = DTYPE(k ^ DTYPE(k >> s1).value)
+            c2 = DTYPE(c1.value ^ DTYPE(c1.value >> s2).value)
+            return c2.value % m
+
+        hashed = tuple(h(k) for k in tags)
+        success = len(hashed) == len(set(hashed))
+        if success:
+            print("A = %d, B = %d, M = %d" % (s1, s2, m))
+            for tag, hh in zip(tags, hashed):
+                print("%d -> %d" % (tag, hh))
+            return
+
+    print("Failed.")
+
+
+# def solve6(m, tags):
+#     print("\nSOLVER6")
+# 
+#     def pickprime():
+#         return PRIMES[random.randint(0, len(PRIMES)-1)]
+# 
+#     for i in range(10000):
+#         p1 = pickprime()
+#         p2 = pickprime()
+# 
+#         def h(k):
+#             c1 = DTYPE(k * p1)
+#             c2 = DTYPE(c1.value * p2)
+#             return c2.value % m
+# 
+#         hashed = tuple(h(k) for k in tags)
+#         success = len(hashed) == len(set(hashed))
+#         if success:
+#             print("P1 = %d, P2 = %d, M = %d" % (p1, p2, m))
+#             for tag, hh in zip(tags, hashed):
+#                 print("%d -> %d" % (tag, hh))
+#             return
+# 
+#     print("Failed.")
+
+
 if __name__ == '__main__':
     args = get_cmdline()
     tags = tuple(sorted({int(x) for x in args.tags}))
@@ -241,3 +294,6 @@ if __name__ == '__main__':
     solve2(m, tags)
     solve3(m, tags)
     solve4(m, tags)
+    solve5(m, tags)
+    # solve6(m, tags)
+

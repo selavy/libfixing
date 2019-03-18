@@ -78,6 +78,29 @@ private:
     }
 };
 
+template <uint32_t A, uint32_t B, uint32_t M>
+struct Hash_XOR {
+    static constexpr uint32_t TABLE_SIZE = M;
+
+    static constexpr uint32_t hash(uint32_t k) noexcept {
+        // def hash(k):
+        //     k ^= k >> A
+        //     k ^= k >> B
+        //     return k % M
+
+        return stage1(stage2(k)) % M;
+    }
+
+private:
+    static constexpr uint32_t stage1(uint32_t k) noexcept {
+        return k ^ (k >> A);
+    }
+
+    static constexpr uint32_t stage2(uint32_t k) noexcept {
+        return k ^ (k >> B);
+    }
+};
+
 template <class Hash, class Tags>
 class FixParser {
 public:
