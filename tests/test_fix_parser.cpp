@@ -42,30 +42,40 @@ TEST_CASE("Parse FIX message #1", "[fix_parser]")
     // FixParser<Hash_ModPrime<4173853012, 3915483460, 102253, 16>, Tags> p2;
     // A = 3323256119, B = 163802662, P = 103919, M = 16
     FixParser<Hash_ModPrime<3323256119, 163802662, 103919, 16>, Tags> p2;
+    // P = 100769, A = 4, B = 2, M = 16
+    FixParser<Hash_XOR_Simple<4, 2, 100769, 16>, Tags> p3;
 
     p1.parse(&*msg.begin(), &*msg.end());
     p2.parse(&*msg.begin(), &*msg.end());
+    p3.parse(&*msg.begin(), &*msg.end());
 
     REQUIRE(p1.get<FIX::Begin>() == "FIX.4.2");
     REQUIRE(p2.get<FIX::Begin>() == "FIX.4.2");
+    REQUIRE(p3.get<FIX::Begin>() == "FIX.4.2");
 
     REQUIRE(p1.get<FIX::MsgType>() == "8");
     REQUIRE(p2.get<FIX::MsgType>() == "8");
+    REQUIRE(p3.get<FIX::MsgType>() == "8");
 
     REQUIRE(p1.get<FIX::OrderID>() == "NF 0015/02082010");
     REQUIRE(p2.get<FIX::OrderID>() == "NF 0015/02082010");
+    REQUIRE(p3.get<FIX::OrderID>() == "NF 0015/02082010");
 
     REQUIRE(p1.get<FIX::Price>() == "55.3600");
     REQUIRE(p2.get<FIX::Price>() == "55.3600");
+    REQUIRE(p3.get<FIX::Price>() == "55.3600");
 
     REQUIRE(p1.get<FIX::SenderCompID>() == "CCG");
     REQUIRE(p2.get<FIX::SenderCompID>() == "CCG");
+    REQUIRE(p3.get<FIX::SenderCompID>() == "CCG");
 
     REQUIRE(p1.get<MyFIX::MissingTag>().empty());
     REQUIRE(p2.get<MyFIX::MissingTag>().empty());
+    REQUIRE(p3.get<MyFIX::MissingTag>().empty());
 
     REQUIRE(p1.get<FIX::ExecType>() == "0");
     REQUIRE(p2.get<FIX::ExecType>() == "0");
+    REQUIRE(p3.get<FIX::ExecType>() == "0");
 
     // // Test for error message on accessing type that isn't in Tags
     // REQUIRE(p1.get<FIX::TargetCompID>().empty());

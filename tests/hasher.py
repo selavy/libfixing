@@ -187,8 +187,7 @@ def solve3(m, tags):
             hashed = tuple(h(k) for k in tags)
             success = len(hashed) == len(set(hashed))
             if success:
-                print("P1 = %d, S1 = %d, S2 = %d" %
-                      (p1, s1, s2, ))
+                print("P = %d, A = %d, B = %d, M = %d" % (p1, s1, s2, M))
                 for tag, hh in zip(tags, hashed):
                     print("%d -> %d" % (tag, hh))
                 return
