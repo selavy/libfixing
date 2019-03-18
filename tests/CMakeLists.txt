@@ -12,3 +12,4 @@ target_link_libraries(test_fix_parser PUBLIC Catch2)
 
 add_executable(test_gen_tag test_gen_tag.cpp)
 target_link_libraries(test_gen_tag PUBLIC DefaultFlags)
+target_link_libraries(test_gen_tag PUBLIC Catch2)

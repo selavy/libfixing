@@ -1,3 +1,6 @@
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
 #include <array>
 #include <algorithm>
 #include <utility>
@@ -38,28 +41,23 @@ struct Tag
 const char* find_tag1(const char* begin, const char* end) noexcept
 {
     constexpr const char Tag[] = "\001151=";
-    printf("Tag = %.*s\n", (int)sizeof(Tag), &Tag[0]);
+    // printf("Tag = %.*s\n", (int)sizeof(Tag), &Tag[0]);
     return std::search(begin, end, std::begin(Tag), std::end(Tag));
 }
 
 const char* find_tag2(const char* begin, const char* end) noexcept
 {
     constexpr const auto Tag = Fix::Tag<151>::Hash;
-    printf("Tag = %.*s\n", (int)sizeof(Tag), &Tag[0]);
+    // printf("Tag = %.*s\n", (int)sizeof(Tag), &Tag[0]);
     return std::search(begin, end, std::begin(Tag), std::end(Tag));
 }
 
-int main(int argc, char** argv)
+TEST_CASE("GenTag", "gentag")
 {
     std::string msg = "8=FIX.4.2|9=253|35=8|128=XYZ|34=124|49=CCG|56=ABC_DEFG04|52=20100208-18:51:42|55=RRC|37=NF 0015/02082010|11=NF 0015/02082010|17=0|20=0|39=0|150=0|54=2|38=1000|40=2|44=55.3600|59=0|31=0|32=0|14=0|6=0|151=1000|60=20100208-18:51:42|58=New order|30=N|1=ABC123ZYX|207=N|7999=Peter's Custom Tag That Has Data|47=A|10=037|";
     std::replace(msg.begin(), msg.end(), '|', '\001');
 
     auto result1 = find_tag1(&*msg.begin(), &*msg.end());
     auto result2 = find_tag1(&*msg.begin(), &*msg.end());
-    assert(result1 == result2);
-    if (result1 != result2) {
-        printf("FAILED\n");
-    }
-
-    return 0;
+    REQUIRE(result1 == result2);
 }
