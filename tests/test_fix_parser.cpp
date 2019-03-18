@@ -17,17 +17,17 @@ using CustomTag2 = FixTag<80001>;
 
 
 using Tags = fixing::MakeTags<
-            FIX::Begin,
-            FIX::MsgType,
-            FIX::OrderID,
-            FIX::Price,
-            FIX::SenderCompID,
-            FIX::Symbol,
-            FIX::TransactTime,
-            MyFIX::MissingTag,
-            FIX::ExecType,
-            MyFIX::CustomTag,
-            MyFIX::CustomTag2
+            FIX::Begin,        // 8
+            FIX::MsgType,      // 35
+            FIX::OrderID,      // 37
+            FIX::Price,        // 44
+            FIX::SenderCompID, // 49
+            FIX::Symbol,       // 55
+            FIX::TransactTime, // 60
+            MyFIX::MissingTag, // 75
+            FIX::ExecType,     // 150
+            MyFIX::CustomTag,  // 7999
+            MyFIX::CustomTag2  // 80001
             >;
 
 TEST_CASE("Parse FIX message #1", "[fix_parser]")
@@ -35,6 +35,9 @@ TEST_CASE("Parse FIX message #1", "[fix_parser]")
     // TODO: update length and checksum to be conforming FIX
     std::string msg = "8=FIX.4.2|9=253|35=8|128=XYZ|34=124|49=CCG|56=ABC_DEFG04|52=20100208-18:51:42|55=RRC|37=NF 0015/02082010|11=NF 0015/02082010|17=0|20=0|39=0|150=0|54=2|38=1000|40=2|44=55.3600|59=0|31=0|32=0|14=0|6=0|151=1000|60=20100208-18:51:42|58=New order|30=N|1=ABC123ZYX|207=N|7999=Peter's Custom Tag That Has Data|47=A|80001=This is a long tag|10=037|";
     std::replace(msg.begin(), msg.end(), '|', '\001');
+
+    // A = 3323256119, B = 163802662, P = 103919, M = 16
+    FixParser<Hash_ModPrime<3323256119, 163802662, 103919, 16>, Tags> p2;
 
     Parser<Tags> p;
     p.parse(&*msg.begin(), &*msg.end());

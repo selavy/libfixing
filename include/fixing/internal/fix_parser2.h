@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fix_defs.h"
+#include <boost/mpl/for_each.hpp>
 
 // TODO: merge this with fix_parser.h via policy classes
 // TODO: use versioning instead of reset
@@ -9,18 +10,24 @@ namespace fixing {
 
 template <uint32_t A, uint32_t B, uint32_t P, uint32_t M>
 struct Hash_ModPrime {
+	static constexpr uint32_t TABLE_SIZE = M;
+
     static constexpr uint32_t hash(uint32_t k) noexcept {
         return (A*k + B) % P % M;
     }
 };
 
 template <class Hash, class Tags>
-class Parser : private Hash {
+class FixParser {
 public:
-    FIXING_CONSTEXPR static int NTAGS = boost::mpl::size<Tags>::value;
+    static constexpr size_t NTAGS = boost::mpl::size<Tags>::value;
+    static constexpr size_t TABLE_SIZE = Hash::TABLE_SIZE;
 
-    Parser() noexcept {
+	static_assert(TABLE_SIZE >= NTAGS, "Invalid table size");
+
+    FixParser() noexcept {
         memset(&_tags[0], 0, sizeof(_tags));
+        boost::mpl::for_each<Tags>(InitTagsArray(_tags));
         reset();
     }
 
@@ -47,8 +54,8 @@ public:
             idx = Hash::hash(r.tag);
             assert((idx >= 0 && idx < NTAGS));
             if (r.tag == _tags[idx]) {
-                _values[idx].off = static_cast<uint16_t>(value - begin);
-                _values[idx].len = static_cast<uint16_t>(cur - value - 1);
+                _values[idx].off = static_cast<uint16_t>(val - begin);
+                _values[idx].len = static_cast<uint16_t>(cur - val - 1);
             }
         }
 
@@ -74,6 +81,23 @@ public:
     }
 
 private:
+
+    // metafunction to initialize the tags vector so we can detect
+    // if a tag is used
+    struct InitTagsArray
+    {
+        InitTagsArray(uint32_t* vals) : _vals(vals) {}
+
+        template <typename Tag> void operator()(Tag k)
+        {
+            constexpr uint32_t tag = Tag::value;
+            constexpr uint32_t index = Hash::hash(tag);
+            _vals[index] = tag;
+        }
+
+        uint32_t* _vals;
+    };
+
     struct Value { uint16_t off, len; };
     struct ReadTag { uint32_t tag; uint32_t adv; };
 
@@ -108,8 +132,8 @@ private:
     }
 
     const char* _buffer;
-    Value       _values[NTAGS];
-    uint16_t    _tags[NTAGS];
+    Value       _values[TABLE_SIZE];
+    uint32_t    _tags[TABLE_SIZE];
 };
 
 } /* fixing */

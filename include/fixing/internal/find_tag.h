@@ -30,15 +30,6 @@ struct FindTag {
         using Middle = typename boost::mpl::advance<Begin, boost::mpl::int_<Length::value / 2>>::type;
         using MiddleNext = typename boost::mpl::next<Middle>::type;
         using MiddleTag = typename Middle::type;
-        // using BeginTag = typename Begin::type;
-        // using EndPrior = typename boost::mpl::prior<End>::type;
-        // using EndTag = typename EndPrior::type;
-
-        // TODO: can I make an automated test to make sure it is doing the
-        // correct number of comparisons?
-
-        // printf("\tChecking tag=%d in range [%d, %d] against %d, sequence length = %ld\n",
-        //         tag, BeginTag::value, EndTag::value, MiddleTag::value, Length::value);
         if (tag < MiddleTag::value) {
             return FindTag<First, Begin, Middle>::call(tag);
         } else if (tag == MiddleTag::value) {
