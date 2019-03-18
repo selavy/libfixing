@@ -2,6 +2,8 @@
 
 #include "fix_defs.h"
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/placeholders.hpp>
 
 // TODO: merge this with fix_parser.h via policy classes
 // TODO: use versioning instead of reset
@@ -73,7 +75,7 @@ public:
         static_assert(FoundValue::value == Tag::value,
                 "Given tag is not present in Tags vector. Add tag to your parser type.");
 
-        FIXING_CONSTEXPR int idx = Hash::hash(Tag::value);
+        constexpr int idx = Hash::hash(Tag::value);
         assert(idx >= 0 && idx < NTAGS && _tags[idx] == Value::tag);
 
         const Value& v = _values[idx];
@@ -82,10 +84,26 @@ public:
 
 private:
 
-    // metafunction to initialize the tags vector so we can detect
-    // if a tag is used
-    struct InitTagsArray
-    {
+    //----------------------------------------------------------
+    // Verify no hash function collisions
+    //----------------------------------------------------------
+    template <class Tag>
+    struct ApplyHash : boost::mpl::int_<Hash::hash(Tag::value)> {};
+
+    using HashedTags = typename boost::mpl::transform<Tags, ApplyHash<boost::mpl::placeholders::_1>>::type;
+    using SortedHashedTags = typename boost::mpl::sort<HashedTags>::type;
+    using UniqueHashedTags = typename boost::mpl::unique<SortedHashedTags,
+                                        boost::is_same<
+                                          boost::mpl::placeholders::_1,
+                                          boost::mpl::placeholders::_2
+                                        >
+                                    >::type;
+    static_assert(boost::mpl::size<UniqueHashedTags>::value == NTAGS, "Hash function has collisions!");
+
+    //----------------------------------------------------------
+    // Initialize presence tags array
+    //----------------------------------------------------------
+    struct InitTagsArray {
         InitTagsArray(uint32_t* vals) : _vals(vals) {}
 
         template <typename Tag> void operator()(Tag k)
@@ -98,7 +116,9 @@ private:
         uint32_t* _vals;
     };
 
-    struct Value { uint16_t off, len; };
+    //----------------------------------------------------------
+    // ASCII Tag -> Integer
+    //----------------------------------------------------------
     struct ReadTag { uint32_t tag; uint32_t adv; };
 
     // TODO: move this to common location to share with binary search version
@@ -131,6 +151,7 @@ private:
         }
     }
 
+    struct Value { uint16_t off, len; };
     const char* _buffer;
     Value       _values[TABLE_SIZE];
     uint32_t    _tags[TABLE_SIZE];
