@@ -28,7 +28,6 @@ struct Hash_XOR_Simple {
 
     static constexpr uint32_t TABLE_SIZE = M;
 
-
     static constexpr uint32_t hash(uint32_t k) noexcept {
         // def hash(k):
         //     k ^= k >> A
@@ -51,6 +50,31 @@ private:
 
     static constexpr uint32_t stage3(uint32_t k) noexcept {
         return k ^ (k >> B);
+    }
+};
+
+template <uint32_t A, uint32_t P, uint32_t M>
+struct Hash_Simple {
+    // TODO: verify that P is prime
+
+    static constexpr uint32_t TABLE_SIZE = M;
+
+    static constexpr uint32_t hash(uint32_t k) noexcept {
+        // def hash(k):
+        //     k *= P
+        //     k ^ k >> A
+        //     return k % M
+
+        return stage2(stage1(k)) % M;
+    }
+
+private:
+    static constexpr uint32_t stage1(uint32_t k) noexcept {
+        return k * P;
+    }
+
+    static constexpr uint32_t stage2(uint32_t k) noexcept {
+        return k ^ (k >> A);
     }
 };
 

@@ -78,6 +78,8 @@ def find_next_power_of_2(x):
 
 
 def solve1(m, tags):
+    print("\nSOLVER1")
+
     def pickprime():
         i = random.randint(0, len(PRIMES)-1)
         return PRIMES[i]
@@ -129,6 +131,8 @@ def solve1(m, tags):
 # }
 
 def solve2(m, tags):
+    print("\nSOLVER2")
+
     def pickprime():
         return PRIMES[random.randint(0, len(PRIMES)-1)]
 
@@ -155,8 +159,8 @@ def solve2(m, tags):
             hashed = tuple(h(k) for k in tags)
             success = len(hashed) == len(set(hashed))
             if success:
-                print("P1 = %d, P2 = %d, S1 = %d, S2 = %d, S3 = %d" %
-                      (p1, p2, s1, s2, s3))
+                print("P1 = %d, P2 = %d, S1 = %d, S2 = %d, S3 = %d, M = %d" %
+                      (p1, p2, s1, s2, s3, m))
                 for tag, hh in zip(tags, hashed):
                     print("%d -> %d" % (tag, hh))
                 return
@@ -165,6 +169,8 @@ def solve2(m, tags):
 
 
 def solve3(m, tags):
+    print("\nSOLVER3")
+
     def pickprime():
         return PRIMES[random.randint(0, len(PRIMES)-1)]
 
@@ -187,13 +193,42 @@ def solve3(m, tags):
             hashed = tuple(h(k) for k in tags)
             success = len(hashed) == len(set(hashed))
             if success:
-                print("P = %d, A = %d, B = %d, M = %d" % (p1, s1, s2, M))
+                print("P = %d, A = %d, B = %d, M = %d" % (p1, s1, s2, m))
                 for tag, hh in zip(tags, hashed):
                     print("%d -> %d" % (tag, hh))
                 return
 
     print("Failed.")
 
+
+def solve4(m, tags):
+    print("\nSOLVER4")
+
+    def pickprime():
+        return PRIMES[random.randint(0, len(PRIMES)-1)]
+
+    def pickshift():
+        return random.randint(1, 31)
+
+    for i in range(100):
+        p1 = pickprime()
+
+        for j in range(100):
+            s1 = pickshift()
+
+            def h(k):
+                c1 = DTYPE(k * p1)
+                c2 = DTYPE(c1.value ^ DTYPE(c1.value >> s1).value)
+                return c2.value % m
+
+            hashed = tuple(h(k) for k in tags)
+            success = len(hashed) == len(set(hashed))
+            if success:
+                print("P = %d, A = %d, M = %d" % (p1, s1, m))
+                for tag, hh in zip(tags, hashed):
+                    print("%d -> %d" % (tag, hh))
+                return
+    print("Failed.")
 
 if __name__ == '__main__':
     args = get_cmdline()
@@ -205,3 +240,4 @@ if __name__ == '__main__':
     solve1(m, tags)
     solve2(m, tags)
     solve3(m, tags)
+    solve4(m, tags)

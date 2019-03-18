@@ -44,46 +44,62 @@ TEST_CASE("Parse FIX message #1", "[fix_parser]")
     FixParser<Hash_ModPrime<3323256119, 163802662, 103919, 16>, Tags> p2;
     // P = 100769, A = 4, B = 2, M = 16
     FixParser<Hash_XOR_Simple<4, 2, 100769, 16>, Tags> p3;
+    // P = 103391, A = 9, M = 16
+    FixParser<Hash_Simple<9, 103391, 16>, Tags> p4;
 
     p1.parse(&*msg.begin(), &*msg.end());
     p2.parse(&*msg.begin(), &*msg.end());
     p3.parse(&*msg.begin(), &*msg.end());
+    p4.parse(&*msg.begin(), &*msg.end());
 
     REQUIRE(p1.get<FIX::Begin>() == "FIX.4.2");
     REQUIRE(p2.get<FIX::Begin>() == "FIX.4.2");
     REQUIRE(p3.get<FIX::Begin>() == "FIX.4.2");
+    REQUIRE(p4.get<FIX::Begin>() == "FIX.4.2");
 
     REQUIRE(p1.get<FIX::MsgType>() == "8");
     REQUIRE(p2.get<FIX::MsgType>() == "8");
     REQUIRE(p3.get<FIX::MsgType>() == "8");
+    REQUIRE(p4.get<FIX::MsgType>() == "8");
 
     REQUIRE(p1.get<FIX::OrderID>() == "NF 0015/02082010");
     REQUIRE(p2.get<FIX::OrderID>() == "NF 0015/02082010");
     REQUIRE(p3.get<FIX::OrderID>() == "NF 0015/02082010");
+    REQUIRE(p4.get<FIX::OrderID>() == "NF 0015/02082010");
 
     REQUIRE(p1.get<FIX::Price>() == "55.3600");
     REQUIRE(p2.get<FIX::Price>() == "55.3600");
     REQUIRE(p3.get<FIX::Price>() == "55.3600");
+    REQUIRE(p4.get<FIX::Price>() == "55.3600");
 
     REQUIRE(p1.get<FIX::SenderCompID>() == "CCG");
     REQUIRE(p2.get<FIX::SenderCompID>() == "CCG");
     REQUIRE(p3.get<FIX::SenderCompID>() == "CCG");
+    REQUIRE(p4.get<FIX::SenderCompID>() == "CCG");
 
     REQUIRE(p1.get<MyFIX::MissingTag>().empty());
     REQUIRE(p2.get<MyFIX::MissingTag>().empty());
     REQUIRE(p3.get<MyFIX::MissingTag>().empty());
+    REQUIRE(p4.get<MyFIX::MissingTag>().empty());
 
     REQUIRE(p1.get<FIX::ExecType>() == "0");
     REQUIRE(p2.get<FIX::ExecType>() == "0");
     REQUIRE(p3.get<FIX::ExecType>() == "0");
+    REQUIRE(p4.get<FIX::ExecType>() == "0");
 
     // // Test for error message on accessing type that isn't in Tags
     // REQUIRE(p1.get<FIX::TargetCompID>().empty());
     // REQUIRE(p2.get<FIX::TargetCompID>().empty());
+    // REQUIRE(p3.get<FIX::TargetCompID>().empty());
+    // REQUIRE(p4.get<FIX::TargetCompID>().empty());
 
     REQUIRE(p1.get<MyFIX::CustomTag>() == "Peter's Custom Tag That Has Data");
     REQUIRE(p2.get<MyFIX::CustomTag>() == "Peter's Custom Tag That Has Data");
+    REQUIRE(p3.get<MyFIX::CustomTag>() == "Peter's Custom Tag That Has Data");
+    REQUIRE(p4.get<MyFIX::CustomTag>() == "Peter's Custom Tag That Has Data");
 
     REQUIRE(p1.get<MyFIX::CustomTag2>() == "This is a long tag");
     REQUIRE(p2.get<MyFIX::CustomTag2>() == "This is a long tag");
+    REQUIRE(p3.get<MyFIX::CustomTag2>() == "This is a long tag");
+    REQUIRE(p4.get<MyFIX::CustomTag2>() == "This is a long tag");
 }
