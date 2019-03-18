@@ -72,13 +72,11 @@ public:
     string_view get() const FIXING_RESTRICT noexcept {
         // if Tag isn't in Tags then this check will fail:
         using Found = typename boost::mpl::find<Tags, Tag>::type;
-        using FoundValue = typename boost::mpl::deref<Found>::type;
-        static_assert(FoundValue::value == Tag::value,
+        static_assert(!std::is_same<typename Found::type, boost::mpl::void_>::value,
                 "Given tag is not present in Tags vector. Add tag to your parser type.");
 
         constexpr uint32_t idx = Hash::hash(Tag::value);
         assert(idx >= 0 && idx < TABLE_SIZE);
-
         const Value& v = _values[idx];
         return { _buffer + v.off, static_cast<std::size_t>(v.len) };
     }

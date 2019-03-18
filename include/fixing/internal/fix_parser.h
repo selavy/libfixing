@@ -59,8 +59,7 @@ public:
         using Index = typename boost::mpl::distance<Begin, Found>::type;
 
         // if Tag isn't in Tags then this check will fail:
-        using FoundValue = typename boost::mpl::deref<Found>::type;
-        static_assert(!std::is_same<FoundValue, boost::mpl::void_>::value,
+        static_assert(!std::is_same<typename Found::type, boost::mpl::void_>::value,
                 "Given tag is not present in Tags vector. Add tag to your parser type.");
 
         FIXING_CONSTEXPR int idx = Index::value;
